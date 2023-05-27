@@ -75,7 +75,7 @@ function App() {
 			{!isModalOpen && (
 				<input
 					type='text'
-					placeholder='search for an item'
+					placeholder='filter items'
 					onChange={(e) => setSearchTerm(e.target.value)}
 					value={searchTerm}
 				/>
