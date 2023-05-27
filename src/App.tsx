@@ -34,6 +34,7 @@ function App() {
 	const [isModalOpen, setisModalOpen] = useState(false)
 	const [currentItem, setCurrentItem] = useState<TItem5MFetch & TItem>()
 	const [timeSelector, setTimeSelector] = useState('')
+	const [itemHistory, setItemHistory] = useState<TItem[]>([])
 
 	const filterItems = (searchTerm: string) =>
 		allItems
@@ -56,25 +57,49 @@ function App() {
 		const data: TItem5MFetch = await response.json()
 		console.log(data)
 		setCurrentItem({ ...data, ...items[itemID] })
+		setItemHistory((prev) => [items[itemID], ...prev])
 		setisModalOpen(true)
+	}
+
+	const closeModal = () => {
+		setisModalOpen(false)
+		setTimeSelector('12')
+		setSearchTerm('')
 	}
 
 	return (
 		<>
 			<h1>OSRS GE Tracker</h1>
-			<input
-				type='text'
-				placeholder='search for an item'
-				onChange={(e) => setSearchTerm(e.target.value)}
-				value={searchTerm}
-			/>
-			<button onClick={() => setSearchTerm('')}>clear</button>
+			{!isModalOpen && (
+				<input
+					type='text'
+					placeholder='search for an item'
+					onChange={(e) => setSearchTerm(e.target.value)}
+					value={searchTerm}
+				/>
+			)}
+			{!isModalOpen && <button onClick={() => setSearchTerm('')}>clear</button>}
+			{itemHistory.length > 0 && !isModalOpen && (
+				<div className='history'>
+					<h2>Item History</h2>
+					{itemHistory.map((entry) => (
+						<p
+							className='search-list'
+							key={entry.id}
+							onClick={() => fetchItemData(entry.id)}>
+							{entry.name}
+						</p>
+					))}
+					<hr />
+				</div>
+			)}
+
 			<div className='items-grid'>
 				{!isModalOpen ? filterItems(searchTerm) : null}
 			</div>
 			{isModalOpen && currentItem ? (
 				<div>
-					<p>{currentItem.name}</p>
+					<h3>{currentItem.name}</h3>
 					<p>
 						Current High Price:{' '}
 						{currency.format(
@@ -105,7 +130,68 @@ function App() {
 						)}{' '}
 						gp (minus cost of rune)
 					</p>
-					<p></p>
+					<div className='value-changes'>
+						<p
+							style={
+								currentItem.data[currentItem.data.length - 1].avgHighPrice -
+									currentItem.data[currentItem.data.length - 13].avgHighPrice >
+								0
+									? { color: 'red' }
+									: { color: 'green' }
+							}>
+							1 hour high value change:{' '}
+							{currency.format(
+								currentItem.data[currentItem.data.length - 1].avgHighPrice -
+									currentItem.data[currentItem.data.length - 13].avgHighPrice
+							)}{' '}
+							gp
+						</p>
+						<p
+							style={
+								currentItem.data[currentItem.data.length - 1].avgLowPrice -
+									currentItem.data[currentItem.data.length - 13].avgLowPrice >
+								0
+									? { color: 'red' }
+									: { color: 'green' }
+							}>
+							1 hour low value change:{' '}
+							{currency.format(
+								currentItem.data[currentItem.data.length - 1].avgLowPrice -
+									currentItem.data[currentItem.data.length - 13].avgLowPrice
+							)}{' '}
+							gp
+						</p>
+						<p
+							style={
+								currentItem.data[currentItem.data.length - 1].avgHighPrice -
+									currentItem.data[currentItem.data.length - 289].avgHighPrice >
+								0
+									? { color: 'red' }
+									: { color: 'green' }
+							}>
+							24 hour high value change:{' '}
+							{currency.format(
+								currentItem.data[currentItem.data.length - 1].avgHighPrice -
+									currentItem.data[currentItem.data.length - 289].avgHighPrice
+							)}{' '}
+							gp
+						</p>
+						<p
+							style={
+								currentItem.data[currentItem.data.length - 1].avgLowPrice -
+									currentItem.data[currentItem.data.length - 289].avgLowPrice >
+								0
+									? { color: 'red' }
+									: { color: 'green' }
+							}>
+							24 hour low value change:{' '}
+							{currency.format(
+								currentItem.data[currentItem.data.length - 1].avgLowPrice -
+									currentItem.data[currentItem.data.length - 289].avgLowPrice
+							)}{' '}
+							gp
+						</p>
+					</div>
 					<p>
 						Last Updated{' '}
 						{dayjs
@@ -157,7 +243,7 @@ function App() {
 						</LineChart>
 					</div>
 
-					<button onClick={() => setisModalOpen(false)}>close</button>
+					<button onClick={() => closeModal()}>Back</button>
 				</div>
 			) : null}
 		</>
