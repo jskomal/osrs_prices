@@ -57,7 +57,9 @@ function App() {
 		const data: TItem5MFetch = await response.json()
 		console.log(data)
 		setCurrentItem({ ...data, ...items[itemID] })
-		setItemHistory((prev) => [items[itemID], ...prev])
+		if (!itemHistory.find((entry) => entry.id === itemID)) {
+			setItemHistory((prev) => [items[itemID], ...prev])
+		}
 		setisModalOpen(true)
 	}
 
